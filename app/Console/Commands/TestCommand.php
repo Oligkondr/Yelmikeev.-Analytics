@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\ApiService;
 use Illuminate\Console\Command;
 
 class TestCommand extends Command
@@ -25,6 +26,15 @@ class TestCommand extends Command
      */
     public function handle()
     {
-        dd(123);
+        $this->info('Test');
+
+        $apiService = new ApiService();
+        $response = $apiService->getStocks([
+            'dateFrom' => '2025-09-18',
+            'page' => 1,
+        ]);
+
+
+        dd($response);
     }
 }
