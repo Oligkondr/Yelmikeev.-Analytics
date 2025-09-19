@@ -53,7 +53,6 @@ class ApiService
     protected function makeRequest(string $endpoint, array $params = []): array
     {
         $params['key'] = $this->apiKey;
-        $params['limit'] = 100;
 
         $response = Http::withHeaders([
             'Accept' => 'application/json',
