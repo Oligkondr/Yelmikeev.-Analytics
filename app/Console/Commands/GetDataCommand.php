@@ -42,27 +42,73 @@ class GetDataCommand extends Command
     {
         $target = $this->argument('target');
 
-        switch ($target) {
-            case 'sales':
-                $this->salesHandler();
-                break;
+        $config = $this->getHandlerConfig($target);
 
-            case 'orders':
-                $this->ordersHandler();
-                break;
-
-            case 'stocks':
-                $this->stocksHandler();
-                break;
-
-            case 'incomes':
-                $this->incomesHandler();
-                break;
-
-            default:
-                $this->error("Unknown target: {$target}");
-                $this->info('Available targets: sales, orders, stocks, incomes');
+        if ($config) {
+            $this->processHandler($config);
+        } else {
+            $this->error("Unknown target: {$target}");
+            $this->info('Available targets: sales, orders, stocks, incomes');
         }
+    }
+
+    private function getHandlerConfig(string $target): ?array
+    {
+        $configs = [
+            'sales' => [
+                'api_method' => 'getSales',
+                'model' => Sale::class,
+                'params' => [
+                    'dateFrom' => '2000-01-01',
+                    'dateTo' => '2030-01-01',
+                ],
+            ],
+            'orders' => [
+                'api_method' => 'getOrders',
+                'model' => Order::class,
+                'params' => [
+                    'dateFrom' => '2000-01-01',
+                    'dateTo' => '2030-01-01',
+                ],
+            ],
+            'stocks' => [
+                'api_method' => 'getStocks',
+                'model' => Stock::class,
+                'params' => [
+                    'dateFrom' => Carbon::today()->format('Y-m-d'),
+                ],
+            ],
+            'incomes' => [
+                'api_method' => 'getIncomes',
+                'model' => Income::class,
+                'params' => [
+                    'dateFrom' => '2000-01-01',
+                    'dateTo' => '2030-01-01',
+                ],
+            ],
+        ];
+
+        return $configs[$target] ?? null;
+    }
+
+    private function processHandler(array $config)
+    {
+        $page = 1;
+
+        do {
+            $this->info("Page: {$page}");
+
+            $params = array_merge($config['params'], ['page' => $page++]);
+            $response = $this->apiService->{$config['api_method']}($params);
+
+            $data = $response['data'];
+
+            foreach ($data as $item) {
+                $config['model']::create($item);
+            }
+
+            usleep(500000);
+        } while ($page <= $response['meta']['last_page']);
     }
 
     private function salesHandler()

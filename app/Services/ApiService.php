@@ -65,6 +65,7 @@ class ApiService
             return $json;
         }
 
-        throw new \Exception($json['message']);
+//        throw new \Exception($json['message']);
+        dd($response->body());
     }
 }

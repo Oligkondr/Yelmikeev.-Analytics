@@ -26,15 +26,33 @@ class TestCommand extends Command
      */
     public function handle()
     {
-        $this->info('Test');
-
         $apiService = new ApiService();
-        $response = $apiService->getStocks([
-            'dateFrom' => '2025-09-18',
+
+        $this->salesHandler([$apiService, 'getSales'], [
+            'dateFrom' => '2000-01-01',
+            'dateTo' => '2030-01-01',
             'page' => 1,
         ]);
+    }
 
+    public function salesHandler(callable $function, array $params)
+    {
+        $this->info('Test command');
 
-        dd($response);
+        do {
+            $this->info("Page: {$params['page']}");
+
+            $response = $function($params);
+
+            $params['page']++;
+
+            $data = $response['data'];
+
+            foreach ($data as $item) {
+                dd($item);
+            }
+
+            usleep(500000);
+        } while ($params['page'] <= $response['meta']['last_page']);
     }
 }
