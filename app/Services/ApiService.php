@@ -13,6 +13,7 @@ class ApiService
     {
         $this->baseUrl = config('services.api.url');
         $this->apiKey = config('services.api.key');
+
     }
 
     /**
@@ -56,7 +57,17 @@ class ApiService
 
         $response = Http::withHeaders([
             'Accept' => 'application/json',
-        ])->get("{$this->baseUrl}/{$endpoint}", $params);
+        ])
+            ->retry(5, function ($exception) {
+                if ($exception->response->hasHeader('Retry-After')) {
+                    return $exception->response->header('Retry-After') * 100;
+                }
+                return 3000;
+            }, function ($exception) {
+                dump("Code: {$exception->response->status()}. Retrying...");
+                return $exception->response->status() === 429;
+            })
+            ->get("{$this->baseUrl}/{$endpoint}", $params);
 
         $json = $response->json();
 
@@ -64,7 +75,7 @@ class ApiService
             return $json;
         }
 
-//        throw new \Exception($json['message']);
-        dd($response->body());
+        throw new \Exception($json['message'] ?? "Request failed with status: {$response->status()}");
+//        dd($response->headers());
     }
 }
