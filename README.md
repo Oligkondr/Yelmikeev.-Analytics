@@ -2,7 +2,7 @@
 
 Выполнить команду:
 
-```php artisan app:get-data-command {target}```
+```php artisan data:get {target}```
 
 Команда выполняет запрос в API и сохраняет данные в БД.
 
@@ -15,7 +15,7 @@
 
 Пример: 
 
-```php artisan app:get-data-command sales``` 
+```php artisan data:get sales``` 
 
 *Команда выполнит запрос на URL http://109.73.206.144:6969/api/sales и сохранит данные в таблицу sales.*
 

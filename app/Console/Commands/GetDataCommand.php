@@ -17,7 +17,7 @@ class GetDataCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'app:get-data-command {target}';
+    protected $signature = 'data:get {target} {--yesterday}';
 
     /**
      * The console command description.
@@ -27,6 +27,8 @@ class GetDataCommand extends Command
     protected $description = 'Getting api data (sales|orders|stocks|incomes).';
 
     private ApiService $apiService;
+    private string $dateFrom;
+    private string $dateTo;
 
     public function __construct(ApiService $apiService)
     {
@@ -42,163 +44,151 @@ class GetDataCommand extends Command
     {
         $target = $this->argument('target');
 
-        $config = $this->getHandlerConfig($target);
+        $this->dateFrom = $this->option('yesterday')
+            ? Carbon::yesterday()->format('Y-m-d')
+            : Carbon::today()->format('Y-m-d');
+        $this->dateTo = Carbon::tomorrow()->format('Y-m-d');
 
-        if ($config) {
-            $this->processHandler($config);
-        } else {
-            $this->error("Unknown target: {$target}");
-            $this->info('Available targets: sales, orders, stocks, incomes');
+        switch ($target) {
+            case 'sales':
+                $this->processSales();
+                break;
+            case 'orders':
+                $this->processOrders();
+                break;
+            case 'stocks':
+                $this->processStocks();
+                break;
+            case 'incomes':
+                $this->processIncomes();
+                break;
+            default:
+                $this->error("Unknown target: {$target}");
+                $this->info('Available targets: sales, orders, stocks, incomes');
+                break;
         }
     }
 
-    private function getHandlerConfig(string $target): ?array
+    private function processSales()
     {
-        $configs = [
-            'sales' => [
-                'api_method' => 'getSales',
-                'model' => Sale::class,
-                'params' => [
-                    'dateFrom' => '2000-01-01',
-                    'dateTo' => '2030-01-01',
-                ],
-            ],
-            'orders' => [
-                'api_method' => 'getOrders',
-                'model' => Order::class,
-                'params' => [
-                    'dateFrom' => '2000-01-01',
-                    'dateTo' => '2030-01-01',
-                ],
-            ],
-            'stocks' => [
-                'api_method' => 'getStocks',
-                'model' => Stock::class,
-                'params' => [
-                    'dateFrom' => Carbon::today()->format('Y-m-d'),
-                ],
-            ],
-            'incomes' => [
-                'api_method' => 'getIncomes',
-                'model' => Income::class,
-                'params' => [
-                    'dateFrom' => '2000-01-01',
-                    'dateTo' => '2030-01-01',
-                ],
-            ],
-        ];
 
-        return $configs[$target] ?? null;
-    }
-
-    private function processHandler(array $config)
-    {
         $page = 1;
 
         do {
-            $this->info("Page: {$page}");
+            $this->info("Processing sales - Page: {$page}");
 
-            $params = array_merge($config['params'], ['page' => $page++]);
-            $response = $this->apiService->{$config['api_method']}($params);
+            $params = [
+                'dateFrom' => $this->dateFrom,
+                'dateTo' => $this->dateTo,
+                'page' => $page++
+            ];
 
+            $response = $this->apiService->getSales($params);
             $data = $response['data'];
 
             foreach ($data as $item) {
-                $config['model']::create($item);
+                $sale = Sale::query()
+                    ->where('sale_id', $item['sale_id'])
+                    ->first();
+
+                if (!$sale) {
+                    Sale::create($item);
+                }
             }
 
-            usleep(500000);
         } while ($page <= $response['meta']['last_page']);
     }
 
-    private function salesHandler()
+    private function processOrders()
     {
+        $dateFrom = $this->option('yesterday')
+            ? Carbon::yesterday()->format('Y-m-d 12:00:00')
+            : Carbon::today()->format('Y-m-d 00:00:00');
+        $dateTo = $this->option('yesterday')
+            ? Carbon::today()->format('Y-m-d 00:00:00')
+            : Carbon::today()->format('Y-m-d 12:00:00');
+
         $page = 1;
 
         do {
-            $this->info("Page: {$page}");
+            $this->info("Processing orders - Page: {$page}");
 
-            $response = $this->apiService->getSales([
-                'dateFrom' => '2000-01-01',
-                'dateTo' => '2030-01-01',
-                'page' => $page++,
-            ]);
+            $params = [
+                'dateFrom' => $this->dateFrom,
+                'dateTo' => $this->dateTo,
+                'page' => $page++
+            ];
 
+            $response = $this->apiService->getOrders($params);
             $data = $response['data'];
 
             foreach ($data as $item) {
-                Sale::create($item);
+                $date = Carbon::createFromTimeString($item['date']);
+
+                if ($date->gt($dateFrom) && $date->lte($dateTo)) {
+                    Order::create($item);
+                }
             }
 
-            usleep(500000);
         } while ($page <= $response['meta']['last_page']);
     }
 
-    private function ordersHandler()
+    private function processStocks()
     {
         $page = 1;
 
         do {
-            $this->info("Page: {$page}");
+            $this->info("Processing stocks - Page: {$page}");
 
-            $response = $this->apiService->getOrders([
-                'dateFrom' => '2000-01-01',
-                'dateTo' => '2030-01-01',
-                'page' => $page++,
-            ]);
+            $params = [
+                'dateFrom' => $this->dateFrom,
+                'page' => $page++
+            ];
 
+            $response = $this->apiService->getStocks($params);
             $data = $response['data'];
 
             foreach ($data as $item) {
-                Order::create($item);
+                $stock = Stock::query()
+                    ->where('last_change_date', $item['last_change_date'])
+                    ->where('supplier_article', $item['supplier_article'])
+                    ->where('warehouse_name', $item['warehouse_name'])
+                    ->first();
+
+                if (!$stock) {
+                    Stock::create($item);
+                }
             }
 
-            usleep(250000);
         } while ($page <= $response['meta']['last_page']);
     }
 
-    private function stocksHandler()
+    private function processIncomes()
     {
         $page = 1;
 
         do {
-            $this->info("Page: {$page}");
+            $this->info("Processing incomes - Page: {$page}");
 
-            $response = $this->apiService->getStocks([
-                'dateFrom' => Carbon::today()->format('Y-m-d'),
-                'page' => $page++,
-            ]);
+            $params = [
+                'dateFrom' => $this->dateFrom,
+                'dateTo' => $this->dateTo,
+                'page' => $page++
+            ];
 
+            $response = $this->apiService->getIncomes($params);
             $data = $response['data'];
 
             foreach ($data as $item) {
-                Stock::create($item);
+                $income = Income::query()
+                    ->where('income_id', $item['income_id'])
+                    ->first();
+
+                if (!$income) {
+                    Income::create($item);
+                }
             }
 
-            usleep(250000);
-        } while ($page <= $response['meta']['last_page']);
-    }
-
-    private function incomesHandler()
-    {
-        $page = 1;
-
-        do {
-            $this->info("Page: {$page}");
-
-            $response = $this->apiService->getIncomes([
-                'dateFrom' => '2000-01-01',
-                'dateTo' => '2030-01-01',
-                'page' => $page++,
-            ]);
-
-            $data = $response['data'];
-
-            foreach ($data as $item) {
-                Income::create($item);
-            }
-
-            usleep(250000);
         } while ($page <= $response['meta']['last_page']);
     }
 }
