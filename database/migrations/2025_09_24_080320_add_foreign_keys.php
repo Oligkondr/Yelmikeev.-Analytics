@@ -1,0 +1,43 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::table('api_service_token_types', function (Blueprint $table) {
+            $table->foreign('token_type_id')
+                ->references('id')
+                ->on('token_types');
+
+            $table->foreign('api_service_id')
+                ->references('id')
+                ->on('api_services');
+        });
+
+        Schema::table('accounts', function (Blueprint $table) {
+            $table->foreign('company_id')
+                ->references('id')
+                ->on('companies');
+
+            $table->foreign('api_service_token_type_id')
+                ->references('id')
+                ->on('api_service_token_types');
+        });
+
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        //
+    }
+};
