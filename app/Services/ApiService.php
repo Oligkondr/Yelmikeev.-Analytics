@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Console\OutputStyle;
 use Illuminate\Support\Facades\Http;
 
 class ApiService
@@ -9,11 +10,18 @@ class ApiService
     protected string $baseUrl;
     protected string $apiKey;
 
+    private ?OutputStyle $output;
+
     public function __construct()
     {
         $this->baseUrl = config('services.api.url');
         $this->apiKey = config('services.api.key');
 
+    }
+
+    public function setOutput(OutputStyle $output): void
+    {
+        $this->output = $output;
     }
 
     /**
@@ -60,11 +68,13 @@ class ApiService
         ])
             ->retry(5, function ($exception) {
                 if ($exception->response->hasHeader('Retry-After')) {
-                    return $exception->response->header('Retry-After') * 100;
+                    return $exception->response->header('Retry-After') * 1000;
                 }
-                return 3000;
+                return 5000;
             }, function ($exception) {
-                dump("Code: {$exception->response->status()}. Retrying...");
+
+                $this->output?->warning("Code: {$exception->response->status()}. Retrying...");
+
                 return $exception->response->status() === 429;
             })
             ->get("{$this->baseUrl}/{$endpoint}", $params);

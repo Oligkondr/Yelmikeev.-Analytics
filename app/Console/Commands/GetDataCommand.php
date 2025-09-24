@@ -42,6 +42,8 @@ class GetDataCommand extends Command
      */
     public function handle()
     {
+        $this->apiService->setOutput($this->getOutput());
+
         $target = $this->argument('target');
 
         $this->dateFrom = $this->option('yesterday')
