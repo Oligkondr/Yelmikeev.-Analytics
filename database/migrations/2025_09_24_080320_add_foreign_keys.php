@@ -25,12 +25,17 @@ return new class extends Migration
             $table->foreign('company_id')
                 ->references('id')
                 ->on('companies');
+        });
+
+        Schema::table('account_tokens', function (Blueprint $table) {
+            $table->foreign('account_id')
+                ->references('id')
+                ->on('accounts');
 
             $table->foreign('api_service_token_type_id')
                 ->references('id')
                 ->on('api_service_token_types');
         });
-
     }
 
     /**

@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class ApiService extends Model
+class AccountToken extends Model
 {
     protected $fillable = [
-        'name'
+        'account_id',
+        'api_service_token_type_id',
+        'token',
     ];
-
 }
