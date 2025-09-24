@@ -71,7 +71,6 @@ class GetDataCommand extends Command
 
     private function processSales()
     {
-
         $page = 1;
 
         do {
@@ -80,7 +79,7 @@ class GetDataCommand extends Command
             $params = [
                 'dateFrom' => $this->dateFrom,
                 'dateTo' => $this->dateTo,
-                'page' => $page++
+                'page' => $page++,
             ];
 
             $response = $this->apiService->getSales($params);
@@ -116,7 +115,7 @@ class GetDataCommand extends Command
             $params = [
                 'dateFrom' => $this->dateFrom,
                 'dateTo' => $this->dateTo,
-                'page' => $page++
+                'page' => $page++,
             ];
 
             $response = $this->apiService->getOrders($params);
@@ -142,7 +141,7 @@ class GetDataCommand extends Command
 
             $params = [
                 'dateFrom' => $this->dateFrom,
-                'page' => $page++
+                'page' => $page++,
             ];
 
             $response = $this->apiService->getStocks($params);
@@ -150,9 +149,9 @@ class GetDataCommand extends Command
 
             foreach ($data as $item) {
                 $stock = Stock::query()
-                    ->where('last_change_date', $item['last_change_date'])
                     ->where('supplier_article', $item['supplier_article'])
                     ->where('warehouse_name', $item['warehouse_name'])
+                    ->where('last_change_date', $item['last_change_date'])
                     ->first();
 
                 if (!$stock) {
@@ -173,7 +172,7 @@ class GetDataCommand extends Command
             $params = [
                 'dateFrom' => $this->dateFrom,
                 'dateTo' => $this->dateTo,
-                'page' => $page++
+                'page' => $page++,
             ];
 
             $response = $this->apiService->getIncomes($params);
