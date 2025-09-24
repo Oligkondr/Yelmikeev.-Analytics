@@ -2,7 +2,11 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Account;
+use App\Models\Company;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class CreateAccountCommand extends Command
 {
@@ -25,6 +29,59 @@ class CreateAccountCommand extends Command
      */
     public function handle()
     {
-        //
+        $this->info('Новый аккаунт');
+
+        $data = $this->getValidatedData();
+
+        try {
+            Account::create($data);
+            $this->line("Новый аккаунт создан.");
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            $this->error('При выполнение операции произошла ошибка.');
+        }
     }
+
+    private function getValidatedData(): array
+    {
+        while (true) {
+            $companies = Company::pluck('name', 'id')->toArray();
+            $companyName = $this->anticipate('Введите название компании', $companies);
+
+            $name = $this->ask('Введите название аккаунта');
+
+            $validator = Validator::make([
+                'name' => $name,
+                'company_name' => $companyName,
+            ], [
+                'name' => 'required|string',
+                'company_name' => 'required|string',
+            ]);
+
+            $company = Company::query()
+                ->where('name', $companyName)
+                ->first();
+
+            if (!$company) {
+                $validator->errors()->add('company', "Компания '{$companyName}' не найдена.");
+            }
+
+
+            if ($validator->errors()->isNotEmpty()) {
+                foreach ($validator->errors()->all() as $error) {
+                    $this->error($error);
+                }
+                $this->warn('Пожалуйста, исправьте ошибки.');
+                continue;
+            }
+
+            $validated = $validator->validated();
+
+            return [
+                'name' => $validated['name'],
+                'company_id' => $company->id,
+            ];
+        }
+    }
+
 }

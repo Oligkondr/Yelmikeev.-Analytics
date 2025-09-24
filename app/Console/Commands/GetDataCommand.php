@@ -24,7 +24,7 @@ class GetDataCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Getting api data (sales|orders|stocks|incomes).';
+    protected $description = 'Getting API data (sales|orders|stocks|incomes).';
 
     private ApiService $apiService;
     private string $dateFrom;

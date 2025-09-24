@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Company;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class CreateCompanyCommand extends Command
@@ -27,12 +28,17 @@ class CreateCompanyCommand extends Command
      */
     public function handle()
     {
-        $this->line('Новая компания');
+        $this->info('Новая компания');
 
         $data = $this->getValidatedData();
 
-        Company::create($data);
-        $this->line("Новая компания \"{$data['name']}\" создана.");
+        try {
+            Company::create($data);
+            $this->line("Новая компания добавлена.");
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            $this->error('При выполнение операции произошла ошибка.');
+        }
     }
 
     private function getValidatedData(): array
@@ -45,7 +51,7 @@ class CreateCompanyCommand extends Command
             ], [
                 'name' => 'required|string',
             ], [
-                'name.required' => 'Название обязательно!'
+                'name.required' => 'Название обязательно!',
             ]);
 
             if ($validator->fails()) {
@@ -56,9 +62,7 @@ class CreateCompanyCommand extends Command
                 continue;
             }
 
-            return [
-                'name' => $name,
-            ];
+            return $validator->validated();
         }
     }
 }

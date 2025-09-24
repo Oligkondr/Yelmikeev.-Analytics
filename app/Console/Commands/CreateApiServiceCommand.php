@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\ApiService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class CreateApiServiceCommand extends Command
@@ -20,33 +21,37 @@ class CreateApiServiceCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Create a new api service';
+    protected $description = 'Create a new API service';
 
     /**
      * Execute the console command.
      */
     public function handle()
     {
-        $this->line('Новый api сервис');
+        $this->line('Новый API сервис');
 
         $data = $this->getValidatedData();
 
-        ApiService::create($data);
-        $this->line("Новая api сервис \"{$data['name']}\" создан.");
-
+        try {
+            ApiService::create($data);
+            $this->line("Новая API сервис \"{$data['name']}\" создан.");
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            $this->error('При выполнение операции произошла ошибка.');
+        }
     }
 
     private function getValidatedData(): array
     {
         while (true) {
-            $name = $this->ask('Введите название api сервиса');
+            $name = $this->ask('Введите название API сервиса');
 
             $validator = Validator::make([
                 'name' => $name,
             ], [
                 'name' => 'required|string',
             ], [
-                'name.required' => 'Название обязательно!'
+                'name.required' => 'Название обязательно!',
             ]);
 
             if ($validator->fails()) {
@@ -57,9 +62,7 @@ class CreateApiServiceCommand extends Command
                 continue;
             }
 
-            return [
-                'name' => $name,
-            ];
+            return $validator->validated();
         }
     }
 
