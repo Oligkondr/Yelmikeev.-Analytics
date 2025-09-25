@@ -4,7 +4,9 @@ namespace App\Console\Commands;
 
 use App\Models\Account;
 use App\Models\ApiService;
+use App\Models\ApiServiceTokenType;
 use App\Models\Company;
+use App\Models\TokenType;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -51,17 +53,23 @@ class CreateAccountCommand extends Command
 
             $name = $this->ask('Введите название аккаунта');
 
-            $services = ApiService::pluck('name', 'id')->toArray();
-            $service = $this->choice('Выберите API сервис', $services);
+            $token = $this->ask('Введите токен');
 
-            dd($service);
+            $apiServices = ApiService::pluck('name', 'id')->toArray();
+            $apiServiceId = $this->choice('Выберите API сервис', [
+                    '' => 'Доступные API сервисы:',
+                ] + $apiServices);
 
             $validator = Validator::make([
                 'name' => $name,
+                'token' => $token,
                 'company_name' => $companyName,
+                'api_service_id' => (int)$apiServiceId,
             ], [
                 'name' => 'required|string',
+                'token' => 'required|string',
                 'company_name' => 'required|string',
+                'api_service_id' => 'required|exists:api_services,id',
             ]);
 
             $company = Company::query()
@@ -71,7 +79,6 @@ class CreateAccountCommand extends Command
             if (!$company) {
                 $validator->errors()->add('company', "Компания '{$companyName}' не найдена.");
             }
-
 
             if ($validator->errors()->isNotEmpty()) {
                 foreach ($validator->errors()->all() as $error) {
@@ -83,11 +90,30 @@ class CreateAccountCommand extends Command
 
             $validated = $validator->validated();
 
+            $apiService = ApiService::find($validated['api_service_id']);
+
+            $tokenTypeId = $this->choice('Выберите тип токена', [
+                    '' => 'Доступные типы:',
+                ] + $apiService->tokenTypes->pluck('name', 'id')->toArray());
+
+            if (!TokenType::find($tokenTypeId)) {
+                $this->error('Тип токен не найден.');
+                $this->warn('Пожалуйста, исправьте ошибки.');
+                continue;
+            }
+
+            /** @var ApiServiceTokenType $apiServiceTokenType */
+            $apiServiceTokenType = $apiService
+                ->apiServiceTokenTypes()
+                ->where('token_type_id', $tokenTypeId)
+                ->first();
+
             return [
                 'name' => $validated['name'],
+                'token' => $validated['token'],
                 'company_id' => $company->id,
+                'api_service_token_type_id' => $apiServiceTokenType->id,
             ];
         }
     }
-
 }
