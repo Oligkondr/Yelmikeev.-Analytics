@@ -6,6 +6,7 @@ use Eloquent;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -24,6 +25,8 @@ use Illuminate\Support\Carbon;
  * @method static Builder<static>|ApiServiceTokenType whereUpdatedAt($value)
  * @property-read ApiService $apiService
  * @property-read TokenType $tokenType
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Account> $accounts
+ * @property-read int|null $accounts_count
  * @mixin Eloquent
  */
 class ApiServiceTokenType extends Model
@@ -41,5 +44,10 @@ class ApiServiceTokenType extends Model
     public function tokenType(): BelongsTo
     {
         return $this->belongsTo(TokenType::class);
+    }
+
+    public function accounts(): HasMany
+    {
+        return $this->hasMany(Account::class);
     }
 }

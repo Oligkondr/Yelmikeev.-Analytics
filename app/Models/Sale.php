@@ -71,6 +71,8 @@ use Illuminate\Support\Carbon;
  * @method static Builder<static>|Sale whereTotalPrice($value)
  * @method static Builder<static>|Sale whereUpdatedAt($value)
  * @method static Builder<static>|Sale whereWarehouseName($value)
+ * @property int $account_id
+ * @method static Builder<static>|Sale whereAccountId($value)
  * @mixin Eloquent
  */
 class Sale extends Model
@@ -103,6 +105,7 @@ class Sale extends Model
         'category',
         'brand',
         'is_storno',
+        'account_id',
     ];
 
     protected $casts = [

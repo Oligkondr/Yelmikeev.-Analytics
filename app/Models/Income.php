@@ -41,6 +41,8 @@ use Illuminate\Support\Carbon;
  * @method static Builder<static>|Income whereTotalPrice($value)
  * @method static Builder<static>|Income whereUpdatedAt($value)
  * @method static Builder<static>|Income whereWarehouseName($value)
+ * @property int $account_id
+ * @method static Builder<static>|Income whereAccountId($value)
  * @mixin Eloquent
  */
 class Income extends Model
@@ -58,6 +60,7 @@ class Income extends Model
         'date_close',
         'warehouse_name',
         'nm_id',
+        'account_id',
     ];
 
     protected $casts = [

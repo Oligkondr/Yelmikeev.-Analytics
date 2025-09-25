@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\Account;
+use Exception;
 use Illuminate\Console\OutputStyle;
 use Illuminate\Support\Facades\Http;
 
@@ -12,11 +14,19 @@ class ApiService
 
     private ?OutputStyle $output;
 
-    public function __construct()
+    /**
+     * @throws Exception
+     */
+    public function __construct(Account $account)
     {
-        $this->baseUrl = config('services.api.url');
-        $this->apiKey = config('services.api.key');
+        if ($account->exists) {
+            if ($account->apiServiceTokenType->tokenType->name != 'api-key') {
+                throw new Exception('Тип токена должен быть api-key');
+            }
 
+            $this->baseUrl = $account->apiServiceTokenType->apiService->url;
+            $this->apiKey = $account->token;
+        }
     }
 
     public function setOutput(OutputStyle $output): void
@@ -25,7 +35,7 @@ class ApiService
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function getSales(array $params = []): array
     {
@@ -33,7 +43,7 @@ class ApiService
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function getOrders(array $params = []): array
     {
@@ -41,7 +51,7 @@ class ApiService
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function getStocks(array $params = []): array
     {
@@ -49,7 +59,7 @@ class ApiService
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function getIncomes(array $params = []): array
     {
@@ -57,7 +67,7 @@ class ApiService
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     protected function makeRequest(string $endpoint, array $params = []): array
     {
@@ -85,7 +95,7 @@ class ApiService
             return $json;
         }
 
-        throw new \Exception($json['message'] ?? "Request failed with status: {$response->status()}");
+        throw new Exception($json['message'] ?? "Request failed with status: {$response->status()}");
 //        dd($response->headers());
     }
 }

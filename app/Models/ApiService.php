@@ -26,12 +26,15 @@ use Illuminate\Support\Carbon;
  * @property-read int|null $api_service_token_types_count
  * @property-read Collection<int, TokenType> $tokenTypes
  * @property-read int|null $token_types_count
+ * @property string $url
+ * @method static Builder<static>|ApiService whereUrl($value)
  * @mixin Eloquent
  */
 class ApiService extends Model
 {
     protected $fillable = [
         'name',
+        'url',
     ];
 
     public function tokenTypes(): HasManyThrough

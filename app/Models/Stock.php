@@ -55,6 +55,8 @@ use Illuminate\Support\Carbon;
  * @method static Builder<static>|Stock whereTechSize($value)
  * @method static Builder<static>|Stock whereUpdatedAt($value)
  * @method static Builder<static>|Stock whereWarehouseName($value)
+ * @property int $account_id
+ * @method static Builder<static>|Stock whereAccountId($value)
  * @mixin Eloquent
  */
 class Stock extends Model
@@ -79,6 +81,7 @@ class Stock extends Model
         'sc_code',
         'price',
         'discount',
+        'account_id',
     ];
 
     protected $casts = [

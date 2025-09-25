@@ -5,6 +5,7 @@ namespace App\Models;
 use Eloquent;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
@@ -25,6 +26,7 @@ use Illuminate\Support\Carbon;
  * @method static Builder<static>|Account whereName($value)
  * @method static Builder<static>|Account whereToken($value)
  * @method static Builder<static>|Account whereUpdatedAt($value)
+ * @property-read \App\Models\ApiServiceTokenType $apiServiceTokenType
  * @mixin Eloquent
  */
 class Account extends Model
@@ -35,4 +37,9 @@ class Account extends Model
         'api_service_token_type_id',
         'token',
     ];
+
+    public function apiServiceTokenType(): BelongsTo
+    {
+        return $this->belongsTo(ApiServiceTokenType::class);
+    }
 }

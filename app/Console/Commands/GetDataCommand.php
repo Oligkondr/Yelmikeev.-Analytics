@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Account;
 use App\Models\Income;
 use App\Models\Order;
 use App\Models\Sale;
@@ -17,7 +18,7 @@ class GetDataCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'data:get {target} {--yesterday}';
+    protected $signature = 'data:get {target} {--acc-id=} {--yesterday}';
 
     /**
      * The console command description.
@@ -27,21 +28,25 @@ class GetDataCommand extends Command
     protected $description = 'Getting API data (sales|orders|stocks|incomes).';
 
     private ApiService $apiService;
+    private Account $account;
     private string $dateFrom;
     private string $dateTo;
-
-    public function __construct(ApiService $apiService)
-    {
-        parent::__construct();
-
-        $this->apiService = $apiService;
-    }
 
     /**
      * Execute the console command.
      */
     public function handle()
     {
+        $accountId = $this->option('acc-id');
+
+        try {
+            $this->account = Account::findOrFail($accountId);
+            $this->apiService = new ApiService($this->account);
+        } catch (\Exception $e) {
+            $this->error($e->getMessage());
+            exit();
+        }
+
         $this->apiService->setOutput($this->getOutput());
 
         $target = $this->argument('target');
@@ -90,10 +95,13 @@ class GetDataCommand extends Command
             foreach ($data as $item) {
                 $sale = Sale::query()
                     ->where('sale_id', $item['sale_id'])
+                    ->where('account_id', $this->account->id)
                     ->first();
 
                 if (!$sale) {
-                    Sale::create($item);
+                    Sale::create($item + [
+                            'account_id' => $this->account->id,
+                        ]);
                 }
             }
 
@@ -127,7 +135,9 @@ class GetDataCommand extends Command
                 $date = Carbon::createFromTimeString($item['date']);
 
                 if ($date->gt($dateFrom) && $date->lte($dateTo)) {
-                    Order::create($item);
+                    Order::create($item + [
+                            'account_id' => $this->account->id,
+                        ]);
                 }
             }
 
@@ -154,10 +164,13 @@ class GetDataCommand extends Command
                     ->where('supplier_article', $item['supplier_article'])
                     ->where('warehouse_name', $item['warehouse_name'])
                     ->where('last_change_date', $item['last_change_date'])
+                    ->where('account_id', $this->account->id)
                     ->first();
 
                 if (!$stock) {
-                    Stock::create($item);
+                    Stock::create($item + [
+                            'account_id' => $this->account->id,
+                        ]);
                 }
             }
 
@@ -183,10 +196,13 @@ class GetDataCommand extends Command
             foreach ($data as $item) {
                 $income = Income::query()
                     ->where('income_id', $item['income_id'])
+                    ->where('account_id', $this->account->id)
                     ->first();
 
                 if (!$income) {
-                    Income::create($item);
+                    Income::create($item + [
+                            'account_id' => $this->account->id,
+                        ]);
                 }
             }
 

@@ -53,6 +53,8 @@ use Illuminate\Support\Carbon;
  * @method static Builder<static>|Order whereTotalPrice($value)
  * @method static Builder<static>|Order whereUpdatedAt($value)
  * @method static Builder<static>|Order whereWarehouseName($value)
+ * @property int $account_id
+ * @method static Builder<static>|Order whereAccountId($value)
  * @mixin Eloquent
  */
 class Order extends Model
@@ -76,6 +78,7 @@ class Order extends Model
         'brand',
         'is_cancel',
         'cancel_dt',
+        'account_id',
     ];
 
     protected $casts = [
