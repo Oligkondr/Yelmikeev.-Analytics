@@ -14,6 +14,8 @@ return new class extends Migration {
             $table->id();
             $table->string('name');
             $table->unsignedBigInteger('company_id');
+            $table->unsignedBigInteger('api_service_token_type_id');
+            $table->text('token');
             $table->timestamps();
         });
     }

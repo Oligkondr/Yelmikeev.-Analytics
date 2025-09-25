@@ -9,5 +9,6 @@ class Account extends Model
     protected $fillable = [
         'name',
         'company_id',
+        'api_service_token_type_id',
     ];
 }

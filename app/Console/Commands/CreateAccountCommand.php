@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Account;
+use App\Models\ApiService;
 use App\Models\Company;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
@@ -49,6 +50,11 @@ class CreateAccountCommand extends Command
             $companyName = $this->anticipate('Введите название компании', $companies);
 
             $name = $this->ask('Введите название аккаунта');
+
+            $services = ApiService::pluck('name', 'id')->toArray();
+            $service = $this->choice('Выберите API сервис', $services);
+
+            dd($service);
 
             $validator = Validator::make([
                 'name' => $name,

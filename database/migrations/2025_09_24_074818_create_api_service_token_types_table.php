@@ -12,8 +12,8 @@ return new class extends Migration {
     {
         Schema::create('api_service_token_types', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('token_type_id');
             $table->unsignedBigInteger('api_service_id');
+            $table->unsignedBigInteger('token_type_id');
             $table->timestamps();
         });
     }

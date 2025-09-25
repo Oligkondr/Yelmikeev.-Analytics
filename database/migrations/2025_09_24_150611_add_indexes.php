@@ -21,13 +21,12 @@ return new class extends Migration {
             ]);
         });
 
-        Schema::table('account_tokens', function (Blueprint $table) {
+        Schema::table('accounts', function (Blueprint $table) {
             $table->unique([
-                'account_id',
+                'company_id',
                 'api_service_token_type_id',
             ]);
         });
-
     }
 
     /**
