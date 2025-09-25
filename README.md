@@ -2,7 +2,7 @@
 
 Выполнить команду:
 
-```php artisan data:get {target}```
+```php artisan data:get {target} {--acc_id=1} {--yesterday}```
 
 Команда выполняет запрос в API и сохраняет данные в БД.
 
@@ -13,11 +13,19 @@
 * orders
 * stocks
 
-Пример: 
+Пример:
 
-```php artisan data:get sales``` 
+```php artisan data:get sales --acc_id=1```
 
 *Команда выполнит запрос на URL http://109.73.206.144:6969/api/sales и сохранит данные в таблицу sales.*
+
+### Создание экземпляров сущностей в БД
+
+```php artisan create:company``` - создаст новую компанию.\
+```php artisan create:account``` - создаст новый аккаунт.\
+```php artisan create:token-type``` - создаст новый тип токена.\
+```php artisan create:api-service``` - создаст новый API сервис.\
+```php artisan create:api-service-token-type``` - добавит токен в доступные для выбранного API сервиса.
 
 ### Доступ к БД
 
@@ -32,3 +40,7 @@ Password: 9jHxKx*rEjUp \
 * incomes
 * orders
 * stocks
+
+описать комманды
+Привести новый пример
+Написать про существующий аккаунт
