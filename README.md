@@ -41,3 +41,5 @@ Password: 9jHxKx*rEjUp \
 * incomes
 * orders
 * stocks
+
+ERROR: build path /home/trainer3/project/Yelmikeev.-Analytics/vendor/laravel/sail/runtimes/8.4 either does not exist, is not accessible, or is not a valid URL.
