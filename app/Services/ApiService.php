@@ -76,16 +76,17 @@ class ApiService
         $response = Http::withHeaders([
             'Accept' => 'application/json',
         ])
-            ->retry(5, function ($exception) {
-                if ($exception->response->hasHeader('Retry-After')) {
-                    return $exception->response->header('Retry-After') * 1000;
+            ->retry(5, function ($e) {
+                if ($e->response->hasHeader('Retry-After')) {
+                    return $e->response->header('Retry-After') * 1000;
                 }
                 return 5000;
-            }, function ($exception) {
+            }, function ($e) {
+                $status = $e->response->status();
 
-                $this->output?->warning("Code: {$exception->response->status()}. Retrying...");
+                $this->output?->warning("Code: {$status}. Retrying...");
 
-                return $exception->response->status() === 429;
+                return $status == 429;
             })
             ->get("{$this->baseUrl}/{$endpoint}", $params);
 
