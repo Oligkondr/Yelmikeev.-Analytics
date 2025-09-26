@@ -25,6 +25,7 @@ services:
             - sail
         depends_on:
             - mysql
+        command: php artisan schedule:work
     mysql:
         image: 'mysql/mysql-server:8.0'
         ports:
